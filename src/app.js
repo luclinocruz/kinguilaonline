@@ -8,7 +8,8 @@ const sequelize = require('../config/database'); // Import Sequelize instance
 
 const verifyToken = require('../middleware/authMiddleware'); // Import middleware
 
-// Example protected route
+
+//protected route
 app.get('/api/auth/profile', verifyToken, (req, res) => {
   res.json({ message: 'Profile data', user: req.user });
 });
@@ -32,6 +33,12 @@ app.get('/', (req, res) => {
 app.post('/test', (req, res) => {
   res.json({ message: 'Test route working' });
 });
+
+
+// inportando e montando transactionroutes
+const transactionRoutes = require('../routes/transactionRoutes');
+app.use('/api/transactions', transactionRoutes);
+
 
 // Test the database connection
 sequelize.authenticate()

@@ -1,0 +1,1 @@
+router.put('/profile', verifyToken, UserController.updateProfile);

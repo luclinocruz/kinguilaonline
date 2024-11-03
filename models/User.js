@@ -20,6 +20,16 @@ const User = sequelize.define('User', {
     type: DataTypes.FLOAT,
     defaultValue: 0.0,
   },
+  refundAccount: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Account for refund transactions'
+  },
+  rating: {
+    type: DataTypes.FLOAT,
+    defaultValue: 5.0,
+    comment: 'User rating for transaction reliability'
+  },
 });
 
 module.exports = User;
