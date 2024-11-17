@@ -1,37 +1,59 @@
 // models/Currency.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
+module.exports = (sequelize, DataTypes) => {
+  const Currency = sequelize.define(
+    'Currency',
+    {
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      code: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: false,
+      },
+      rate: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+        defaultValue: 1.0,
+        validate: {
+          min: 0.01, // Prevent zero or negative rates
+        },
+        comment: 'Exchange rate defined by the seller',
+      },
+      maxAmount: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+          min: 0, // No negative amounts
+        },
+        comment: 'Maximum amount the seller has available',
+      },
+      availableAmount: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+          min: 0, // Prevent negative availability
+        },
+        comment: 'Amount available for transactions',
+      },
+      symbol: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+    },
+    {
+      timestamps: true,
+      paranoid: true, // Enables soft deletes
+    }
+  );
 
-const Currency = sequelize.define('Currency', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  code: {
-    type: DataTypes.STRING,
-    unique: true,
-    allowNull: false,
-  },
-  
-  rate: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-    defaultValue: 1.0,
-    comment: 'Exchange rate defined by the seller'
-  },
-  maxAmount: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-    defaultValue: 0,
-    comment: 'Maximum amount the seller has available'
-  },
-  symbol: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-});
+  Currency.associate = (models) => {
+    Currency.hasMany(models.Transaction, { foreignKey: 'currencyId' });
+    Currency.belongsTo(models.User, { foreignKey: 'userId' });
+  };
 
-User.hasMany(Currency, { foreignKey: 'userId' });
-Currency.belongsTo(User, { foreignKey: 'userId' });
-module.exports = Currency;
+  return Currency;
+};

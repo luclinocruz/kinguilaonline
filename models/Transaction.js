@@ -1,42 +1,50 @@
 // models/Transaction.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
-const Currency = require('./Currency');
-
-//definição de tipos de transaçãokkko
-const Transaction = sequelize.define('Transaction', {
-  type: {
-    type: DataTypes.ENUM('buy', 'sell', 'exchange'),
-    allowNull: false,
-  },
-  amount: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-  },
-  currencyId: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: Currency,
-      key: 'id',
+module.exports = (sequelize, DataTypes) => {
+  const Transaction = sequelize.define(
+    'Transaction',
+    {
+      type: {
+        type: DataTypes.ENUM('buy', 'sell', 'exchange'),
+        allowNull: false,
+        validate: {
+          isIn: [['buy', 'sell', 'exchange']],
+        },
+      },
+      amount: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+        validate: {
+          min: 0.01,
+        },
+      },
+      status: {
+        type: DataTypes.ENUM('pending', 'completed', 'cancelled', 'failed'),
+        defaultValue: 'pending',
+      },
+      initiatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
+      completedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      cancelledAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
-  },
-  userId: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: User,
-      key: 'id',
-    },
-  },
-  status: {
-    type: DataTypes.ENUM('pending', 'completed', 'failed'),
-    defaultValue: 'pending',
-  },
-});
+    {
+      timestamps: true,
+      paranoid: true,
+    }
+  );
 
-User.hasMany(Transaction);
-Transaction.belongsTo(User);
-Currency.hasMany(Transaction);
-Transaction.belongsTo(Currency);
+  Transaction.associate = (models) => {
+    Transaction.belongsTo(models.User, { as: 'Buyer', foreignKey: 'buyerId' });
+    Transaction.belongsTo(models.User, { as: 'Seller', foreignKey: 'sellerId' });
+    Transaction.belongsTo(models.Currency, { foreignKey: 'currencyId' });
+  };
 
-module.exports = Transaction;
+  return Transaction;
+};
