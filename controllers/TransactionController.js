@@ -2,7 +2,7 @@
 const { Transaction, Currency, User } = require('../models');
 const { Op } = require('sequelize'); // Sequelize operators for complex queries
 
-// Utility to calculate platform fee
+// Utility to calculate platform fee, actually 1%
 const calculateFee = (amount, feePercentage = 1) => {
   return (amount * feePercentage) / 100;
 };

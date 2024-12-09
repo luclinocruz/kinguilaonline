@@ -34,9 +34,11 @@ db.sequelize
 // Routes
 const authRoutes = require('../routes/authRoutes');
 const transactionRoutes = require('../routes/transactionRoutes');
+const currencyRoutes = require('../routes/currencyRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/currencies', currencyRoutes);
 
 // Basic test route
 app.get('/', (req, res) => {

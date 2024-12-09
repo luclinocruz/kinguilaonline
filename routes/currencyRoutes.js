@@ -4,10 +4,10 @@ const router = express.Router();
 const CurrencyController = require('../controllers/CurrencyController');
 const verifyToken = require('../middleware/authMiddleware'); // Middleware to protect routes
 
-// Adicionar nova moeda (somente admin)
-router.post('/add', verifyToken, CurrencyController.addCurrency);
-
-// Listar todas as moedas
-router.get('/list', CurrencyController.listCurrencies);
+// Currency management routes
+router.post('/add', verifyToken, CurrencyController.addCurrency); // Add a new currency
+router.put('/update/:id', verifyToken, CurrencyController.updateCurrency); // Update a currency
+router.delete('/delete/:id', verifyToken, CurrencyController.deleteCurrency); // Delete a currency
+router.get('/list', verifyToken, CurrencyController.listCurrencies); // List all currencies
 
 module.exports = router;
