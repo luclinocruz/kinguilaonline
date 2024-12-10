@@ -10,6 +10,7 @@ const sequelize = config.use_env_variable
   ? new Sequelize(process.env[config.use_env_variable], config)
   : new Sequelize(config.database, config.username, config.password, config);
 
+// Carrega todos os modelos, mas não define associações ainda
 fs.readdirSync(__dirname)
   .filter(
     (file) =>
@@ -22,6 +23,7 @@ fs.readdirSync(__dirname)
     db[model.name] = model;
   });
 
+// Define associações após todos os modelos terem sido carregados
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
