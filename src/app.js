@@ -6,9 +6,15 @@ const dotenv = require('dotenv');
 const db = require('../models'); // Sequelize models
 const cors = require('cors'); // Middleware for cross-origin requests
 const helmet = require('helmet'); // Security middleware
+const { swaggerUi, swaggerSpec } = require('./config/swagger');
 
 // Load environment variables
 dotenv.config();
+
+// Configurar rota da documentação
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+console.log('Swagger documentation available at /api-docs');
+
 
 // Middleware to parse JSON
 app.use(express.json());
