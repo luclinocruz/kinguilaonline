@@ -2,6 +2,48 @@
 const { Currency } = require('../models');
 
 /**
+ * Busca moedas disponíveis com base nos critérios fornecidos.
+ */
+exports.searchCurrencies = async (req, res) => {
+    const { name, code, minRate, maxRate } = req.query;
+  
+    try {
+      const filters = {};
+      if (name) filters.name = { [Op.iLike]: `%${name}%` };
+      if (code) filters.code = { [Op.iLike]: `%${code}%` };
+      if (minRate) filters.rate = { [Op.gte]: parseFloat(minRate) };
+      if (maxRate) filters.rate = { [Op.lte]: parseFloat(maxRate) };
+  
+      const currencies = await Currency.findAll({ where: filters });
+  
+      res.status(200).json({ currencies });
+    } catch (error) {
+      console.error('Erro ao buscar moedas:', error);
+      res.status(500).json({ message: 'Erro ao buscar moedas.', error });
+    }
+  };
+  
+  /**
+   * Ordena os vendedores de moedas com base em critérios específicos.
+   */
+  exports.sortCurrencies = async (req, res) => {
+    const { sortBy } = req.query; // Exemplo: "rate", "maxAmount"
+  
+    try {
+      const currencies = await Currency.findAll({
+        include: [{ model: User, attributes: ['username', 'rating'] }],
+        order: [[sortBy || 'rate', 'ASC']], // Ordena pelo critério ou por taxa como padrão
+      });
+  
+      res.status(200).json({ currencies });
+    } catch (error) {
+      console.error('Erro ao ordenar moedas:', error);
+      res.status(500).json({ message: 'Erro ao ordenar moedas.', error });
+    }
+  };
+
+
+/**
  * Adiciona uma nova moeda ao sistema.
  */
 exports.addCurrency = async (req, res) => {

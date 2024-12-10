@@ -1,3 +1,5 @@
+const { refreshToken } = require("../controllers/AuthController");
+
 // models/User.js
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
@@ -29,6 +31,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.FLOAT,
         defaultValue: 5.0,
         comment: 'User rating for transaction reliability',
+      },
+      refreshToken:{
+        type:DataTypes.STRING,
+        allowNull: true,
+        comment: 'Stores the refresh token for token renewal',
       },
     },
     {

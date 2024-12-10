@@ -9,5 +9,8 @@ router.post('/add', verifyToken, CurrencyController.addCurrency); // Add a new c
 router.put('/update/:id', verifyToken, CurrencyController.updateCurrency); // Update a currency
 router.delete('/delete/:id', verifyToken, CurrencyController.deleteCurrency); // Delete a currency
 router.get('/list', verifyToken, CurrencyController.listCurrencies); // List all currencies
+// routes/currencyRoutes.js
+router.get('/search', verifyToken, CurrencyController.searchCurrencies); // Buscar moedas
+router.get('/sort', verifyToken, CurrencyController.sortCurrencies); // Ordenar vendedores por critérios
 
 module.exports = router;
