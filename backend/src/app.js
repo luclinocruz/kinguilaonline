@@ -24,9 +24,10 @@ app.use(helmet());
 
 // Enable CORS
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*', // Restrict origin to your frontend URL
+  origin: process.env.CLIENT_URL || 'http://localhost:4200', // Permitir apenas o frontend, // Restrict origin to your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // Permitir envio de cookies
 }));
 
 // Test database connection
