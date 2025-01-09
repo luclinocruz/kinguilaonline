@@ -7,6 +7,8 @@ const db = require('../models'); // Sequelize models
 const cors = require('cors'); // Middleware for cross-origin requests
 const helmet = require('helmet'); // Security middleware
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
+// Importar rotas de contato
+const contactRoutes = require('../routes/contactRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -14,6 +16,9 @@ dotenv.config();
 // Configurar rota da documentação
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 console.log('Swagger documentation available at /api-docs');
+
+// Registrar rotas
+app.use('/api/contact', contactRoutes);
 
 
 // Middleware to parse JSON
