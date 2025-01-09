@@ -20,5 +20,10 @@ const verifyToken = (req, res, next) => {
     return res.status(403).json({ message: 'Invalid or expired token.' });
   }
 };
+/* -----
+app.use(express.json());
+app.use(cors({ origin: 'http://localhost:4200', credentials: true }));
+app.use(helmet());
+*/
 
 module.exports = verifyToken;

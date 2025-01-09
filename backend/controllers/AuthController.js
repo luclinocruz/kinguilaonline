@@ -1,129 +1,142 @@
-// controllers/AuthController.js
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { User } = require('../models');
+const jwt = require('jsonwebtoken');
+const { User, TokenBlacklist } = require('../models');
+
+// Helper function to generate a token
+const generateToken = (user, secret, expiresIn) => {
+    return jwt.sign({ userId: user.id, email: user.email }, secret, { expiresIn });
+};
 
 /**
- * Logout user by invalidating the refresh token.
+ * Register a new user
  */
-exports.logoutUser = async (req, res) => {
+const register = async (req, res) => {
     try {
-      const { refreshToken } = req.body;
-  
-      if (!refreshToken) {
-        return res.status(400).json({ message: 'Refresh token is required' });
-      }
-  
-      // Add the token to the blacklist
-      await TokenBlacklist.create({ token: refreshToken });
-  
-      res.status(200).json({ message: 'User logged out successfully' });
-    } catch (error) {
-      console.error('Error logging out user:', error);
-      res.status(500).json({ message: 'Error logging out user', error });
-    }
-  };
-  
-  /**
-   * Middleware to validate and revoke token.
-   */
-  exports.validateAndRevokeToken = async (req, res, next) => {
-    try {
-      const authHeader = req.headers.authorization;
-  
-      if (!authHeader) {
-        return res.status(401).json({ message: 'Authorization header missing' });
-      }
-  
-      const token = authHeader.split(' ')[1];
-  
-      // Check if the token is in the blacklist
-      const isBlacklisted = await TokenBlacklist.findOne({ where: { token } });
-  
-      if (isBlacklisted) {
-        return res.status(401).json({ message: 'Token has been revoked' });
-      }
-  
-      // Verify token
-      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-          return res.status(401).json({ message: 'Invalid or expired token' });
+        const { username, email, password } = req.body;
+
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'All fields are required.' });
         }
-  
-        req.user = decoded;
-        next();
-      });
+
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(409).json({ message: 'User already exists with this email.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await User.create({ username, email, password: hashedPassword });
+        res.status(201).json({ message: 'User registered successfully.', data: { id: newUser.id, email: newUser.email } });
     } catch (error) {
-      console.error('Error validating token:', error);
-      res.status(500).json({ message: 'Error validating token', error });
+        console.error('Error registering user:', error);
+        res.status(500).json({ message: 'Error registering user', error });
     }
-  };
-
-// Gerar novo access token
-const generateAccessToken = (user) => {
-  return jwt.sign(
-    { userId: user.id, username: user.username },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: '15m' } // Expira em 15 minutos
-  );
-};
-
-// Gerar refresh token
-const generateRefreshToken = (user) => {
-  return jwt.sign(
-    { userId: user.id },
-    process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: '7d' } // Expira em 7 dias
-  );
 };
 
 /**
- * Rota para refresh de token.
+ * User login
  */
-exports.refreshToken = async (req, res) => {
-  const { refreshToken } = req.body;
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-  if (!refreshToken) {
-    return res.status(401).json({ message: 'Refresh token is required' });
-  }
+        if (!email || !password) {
+            return res.status(400).json({ message: 'All fields are required.' });
+        }
 
-  try {
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    const user = await User.findByPk(decoded.userId);
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
 
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(403).json({ message: 'Invalid refresh token' });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
+
+        const accessToken = generateToken(user, process.env.JWT_SECRET, '15m');
+        const refreshToken = generateToken(user, process.env.JWT_REFRESH_SECRET, '7d');
+
+        res.status(200).json({ message: 'Login successful.', tokens: { accessToken, refreshToken } });
+    } catch (error) {
+        console.error('Error logging in user:', error);
+        res.status(500).json({ message: 'Error logging in user', error });
     }
-
-    // Gerar novo access token
-    const accessToken = generateAccessToken(user);
-
-    res.status(200).json({ accessToken });
-  } catch (error) {
-    console.error('Error refreshing token:', error);
-    res.status(403).json({ message: 'Invalid or expired refresh token' });
-  }
 };
 
 /**
- * Rota para logout.
+ * Refresh access token
  */
-exports.logout = async (req, res) => {
-  const { userId } = req.user;
+const refreshToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
 
-  try {
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+        if (!refreshToken) {
+            return res.status(400).json({ message: 'Refresh token is required.' });
+        }
+
+        jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
+            if (err) {
+                return res.status(401).json({ message: 'Invalid or expired refresh token.' });
+            }
+
+            const accessToken = generateToken({ id: decoded.userId, email: decoded.email }, process.env.JWT_SECRET, '15m');
+            res.status(200).json({ message: 'Token refreshed successfully.', accessToken });
+        });
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        res.status(500).json({ message: 'Error refreshing token', error });
     }
+};
 
-    // Invalidar o refresh token
-    user.refreshToken = null;
-    await user.save();
+/**
+ * Logout user
+ */
+const logout = async (req, res) => {
+    try {
+        const { token } = req.body;
 
-    res.status(200).json({ message: 'Logged out successfully' });
-  } catch (error) {
-    console.error('Error logging out:', error);
-    res.status(500).json({ message: 'Error logging out', error });
-  }
+        if (!token) {
+            return res.status(400).json({ message: 'Token is required to logout.' });
+        }
+
+        await TokenBlacklist.create({ token });
+        res.status(200).json({ message: 'Logout successful.' });
+    } catch (error) {
+        console.error('Error logging out user:', error);
+        res.status(500).json({ message: 'Error logging out user', error });
+    }
+};
+
+/**
+ * Validate and revoke token
+ */
+const validateAndRevokeToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({ message: 'Token is required.' });
+        }
+
+        jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+            if (err) {
+                return res.status(401).json({ message: 'Invalid or expired token.' });
+            }
+
+            await TokenBlacklist.create({ token });
+            res.status(200).json({ message: 'Token revoked successfully.' });
+        });
+    } catch (error) {
+        console.error('Error revoking token:', error);
+        res.status(500).json({ message: 'Error revoking token', error });
+    }
+};
+
+// Export individually
+module.exports = {
+    register,
+    login,
+    refreshToken,
+    logout,
+    validateAndRevokeToken,
 };

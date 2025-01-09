@@ -24,11 +24,6 @@ fs.readdirSync(__dirname)
     db[model.name] = model;
   });
 
-// Assegura que o modelo ContactMessage seja carregado
-if (!db.ContactMessage) {
-  const ContactMessage = require('./ContactMessage')(sequelize, Sequelize.DataTypes);
-  db.ContactMessage = ContactMessage;
-}
 
 // Define associações após todos os modelos terem sido carregados
 Object.keys(db).forEach((modelName) => {

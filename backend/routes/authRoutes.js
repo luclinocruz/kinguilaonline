@@ -1,15 +1,17 @@
 /**
  * @swagger
  * tags:
- *   name: Auth
+ *   name: Luclino Cruz
  *   description: Rotas para autenticação e gerenciamento de tokens.
  */
 
 const express = require('express');
 const router = express.Router();
-const UserController = require('../controllers/UserController');
-const AuthController = require('../controllers/AuthController');
-const verifyToken = require('../middleware/authMiddleware');
+const AuthController = require('../controllers/AuthController'); // Certifique-se de que este caminho está correto.
+const verifyToken = require('../middleware/authMiddleware'); // Middleware para verificar tokens.
+
+
+console.log(AuthController); // Debug para verificar o que está sendo importado
 
 /**
  * @swagger
@@ -36,7 +38,7 @@ const verifyToken = require('../middleware/authMiddleware');
  *       400:
  *         description: Dados inválidos.
  */
-router.post('/register', UserController.register);
+router.post('/register', AuthController.register);
 
 /**
  * @swagger
@@ -61,7 +63,7 @@ router.post('/register', UserController.register);
  *       401:
  *         description: Credenciais inválidas.
  */
-router.post('/login', UserController.login);
+router.post('/login', AuthController.login);
 
 /**
  * @swagger
@@ -89,7 +91,7 @@ router.post('/refresh', AuthController.refreshToken);
  *       200:
  *         description: Logout bem-sucedido.
  */
-router.post('/logout', verifyToken, AuthController.logoutUser);
+router.post('/logout', verifyToken, AuthController.logout);
 
 /**
  * @swagger

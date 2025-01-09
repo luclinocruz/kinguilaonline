@@ -142,7 +142,7 @@ async function loadExchangeRates() {
     }
   }
   // Navegação dinâmica
-function navigateTo(sectionId) {
+/*function navigateTo(sectionId) {
   fetch(`${sectionId}.html`)
     .then((response) => response.text())
     .then((html) => {
@@ -150,6 +150,15 @@ function navigateTo(sectionId) {
       highlightNavItem(sectionId);
     })
     .catch((error) => console.error(`Erro ao carregar a seção ${sectionId}:`, error));
+}*/
+function navigateTo(sectionId) {
+  document.querySelectorAll('.page').forEach((page) => {
+    page.classList.remove('active');
+  });
+  const targetPage = document.getElementById(sectionId);
+  if (targetPage) {
+    targetPage.classList.add('active');
+  }
 }
 
 // Destacar item ativo no menu
@@ -245,7 +254,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
 });
 
 // Função para enviar mensagens de contato
-document.getElementById('contactForm').addEventListener('submit', async function (event) {
+/*document.getElementById('contactForm').addEventListener('submit', async function (event) {
   event.preventDefault();
   const name = document.getElementById('name').value;
   const email = document.getElementById('email').value;
@@ -268,7 +277,30 @@ document.getElementById('contactForm').addEventListener('submit', async function
       console.error('Erro ao enviar a mensagem:', error);
       alert('Erro ao enviar a mensagem.');
   }
+});*/
+document.getElementById('contactForm')?.addEventListener('submit', async function (event) {
+  event.preventDefault();
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const message = document.getElementById('message').value;
+
+  try {
+    const response = await fetch('http://localhost:3000/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, message }),
+    });
+    if (response.ok) {
+      alert('Mensagem enviada com sucesso!');
+    } else {
+      alert('Erro ao enviar mensagem.');
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+  }
 });
+
+
 
 // Animação de fade-in
 document.addEventListener('DOMContentLoaded', () => {

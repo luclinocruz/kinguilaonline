@@ -1,39 +1,19 @@
 // src/app.js
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
 const dotenv = require('dotenv');
 const db = require('../models'); // Sequelize models
 const cors = require('cors'); // Middleware for cross-origin requests
 const helmet = require('helmet'); // Security middleware
 const { swaggerUi, swaggerSpec } = require('./config/swagger');
-// Importar rotas de contato
-const contactRoutes = require('../routes/contactRoutes');
 
 // Load environment variables
 dotenv.config();
 
-// Configurar rota da documentação
+
+// Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 console.log('Swagger documentation available at /api-docs');
-
-// Registrar rotas
-app.use('/api/contact', contactRoutes);
-
-
-// Middleware to parse JSON
-app.use(express.json());
-
-// Middleware for security
-app.use(helmet());
-
-// Enable CORS
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:4200', // Permitir apenas o frontend, // Restrict origin to your frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // Permitir envio de cookies
-}));
 
 // Test database connection
 db.sequelize
@@ -55,14 +35,24 @@ db.sequelize
     console.error('Error synchronizing database models:', err);
   });
 
-// Routes
+// Import Routes
+const contactRoutes = require('../routes/contactRoutes');
 const authRoutes = require('../routes/authRoutes');
 const transactionRoutes = require('../routes/transactionRoutes');
 const currencyRoutes = require('../routes/currencyRoutes');
 
-app.use('/api/auth', authRoutes); // Authentication routes
-app.use('/api/transactions', transactionRoutes); // Transaction routes
-app.use('/api/currencies', currencyRoutes); // Currency-related routes
+
+// Register Routes
+app.use('/api/contact', contactRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/currencies', currencyRoutes);
+
+// Middleware
+app.use(express.json());
+app.use(cors({ origin: 'http://localhost:4200', credentials: true }));
+app.use(helmet());
+
 
 // Basic test route
 app.get('/', (req, res) => {
@@ -79,6 +69,9 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+module.exports = app;
