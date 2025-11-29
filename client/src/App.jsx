@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useAuthStore } from './store/useStore'
+import { useAuthStore, useAdminStore } from './store/useStore'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -13,6 +13,12 @@ import MyOffers from './pages/MyOffers'
 import Reviews from './pages/Reviews'
 import Settings from './pages/Settings'
 import Support from './pages/Support'
+import AdminLogin from './pages/admin/AdminLogin'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminTransactions from './pages/admin/AdminTransactions'
+import AdminTickets from './pages/admin/AdminTickets'
+import AdminSettings from './pages/admin/AdminSettings'
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuthStore()
@@ -26,6 +32,14 @@ function PublicRoute({ children }) {
   const { isAuthenticated } = useAuthStore()
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />
+  }
+  return children
+}
+
+function AdminProtectedRoute({ children }) {
+  const { isAdminAuthenticated } = useAdminStore()
+  if (!isAdminAuthenticated) {
+    return <Navigate to="/admin/login" replace />
   }
   return children
 }
@@ -106,6 +120,38 @@ function App() {
           <ProtectedRoute>
             <Support />
           </ProtectedRoute>
+        } />
+
+        <Route path="/admin/login" element={<AdminLogin />} />
+        
+        <Route path="/admin" element={
+          <AdminProtectedRoute>
+            <AdminDashboard />
+          </AdminProtectedRoute>
+        } />
+        
+        <Route path="/admin/users" element={
+          <AdminProtectedRoute>
+            <AdminUsers />
+          </AdminProtectedRoute>
+        } />
+        
+        <Route path="/admin/transactions" element={
+          <AdminProtectedRoute>
+            <AdminTransactions />
+          </AdminProtectedRoute>
+        } />
+        
+        <Route path="/admin/tickets" element={
+          <AdminProtectedRoute>
+            <AdminTickets />
+          </AdminProtectedRoute>
+        } />
+        
+        <Route path="/admin/settings" element={
+          <AdminProtectedRoute>
+            <AdminSettings />
+          </AdminProtectedRoute>
         } />
 
         <Route path="*" element={<Navigate to="/" replace />} />

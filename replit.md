@@ -11,12 +11,13 @@ Kinguila Online is a peer-to-peer currency exchange platform that connects buyer
 │   ├── src/
 │   │   ├── components/     # Reusable UI components
 │   │   │   ├── Layout.jsx
+│   │   │   ├── AdminLayout.jsx
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── Sidebar.jsx
 │   │   │   ├── SellerCard.jsx
 │   │   │   ├── Timer.jsx
 │   │   │   └── TransactionCard.jsx
-│   │   ├── pages/          # Page components
+│   │   ├── pages/          # User-facing pages
 │   │   │   ├── Landing.jsx
 │   │   │   ├── Login.jsx
 │   │   │   ├── Register.jsx
@@ -30,6 +31,13 @@ Kinguila Online is a peer-to-peer currency exchange platform that connects buyer
 │   │   │   ├── Reviews.jsx
 │   │   │   ├── Settings.jsx
 │   │   │   └── Support.jsx
+│   │   ├── pages/admin/    # Admin dashboard pages
+│   │   │   ├── AdminLogin.jsx
+│   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── AdminUsers.jsx
+│   │   │   ├── AdminTransactions.jsx
+│   │   │   ├── AdminTickets.jsx
+│   │   │   └── AdminSettings.jsx
 │   │   ├── store/          # Zustand state management
 │   │   ├── hooks/          # Custom React hooks
 │   │   └── utils/          # Utility functions

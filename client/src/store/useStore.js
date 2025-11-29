@@ -57,3 +57,19 @@ export const useNotificationStore = create((set, get) => ({
   
   clearAll: () => set({ notifications: [], unreadCount: 0 }),
 }))
+
+export const useAdminStore = create(
+  persist(
+    (set, get) => ({
+      admin: null,
+      isAdminAuthenticated: false,
+      
+      adminLogin: (admin) => set({ admin, isAdminAuthenticated: true }),
+      
+      adminLogout: () => set({ admin: null, isAdminAuthenticated: false }),
+    }),
+    {
+      name: 'kinguila-admin',
+    }
+  )
+)
