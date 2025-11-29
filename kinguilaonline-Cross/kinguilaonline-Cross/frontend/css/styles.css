@@ -1,0 +1,26 @@
+body {
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  .page {
+    display: none;
+  }
+  
+  .page.active {
+    display: block;
+  }
+  
+  .navbar {
+    background-color: #f8f9fa;
+  }
+  
+  footer {
+    background-color: #343a40;
+    color: white;
+    font-size: 0.9rem;
+  }
+  
+  .fade-in {
+    animation: fadeIn 1.5s ease-in-out;
+  }
+  

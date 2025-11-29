@@ -1,0 +1,135 @@
+Este é um plano de desenvolvimento completo e estruturado para a plataforma **Kinguila Online**.
+
+Dado que o objetivo é uma plataforma de produção robusta (não um MVP) que lida com transações financeiras, a abordagem deve priorizar a segurança, a escalabilidade e uma experiência de utilizador (UX) impecável, baseada na confiança.
+
+Embora o Replit seja excelente para prototipagem, uma aplicação financeira desta complexidade, com a stack tecnológica sugerida (.NET, Python, React, PostgreSQL, Redis, serviços de fundo para cronómetros), requer uma infraestrutura de nuvem mais robusta (como AWS, Azure ou DigitalOcean) para produção. No entanto, organizarei o plano de forma modular, onde componentes individuais poderiam ser iniciados em ambientes de desenvolvimento ágeis.
+
+-----
+
+## 🎨 1. Design System e UI/UX (A "Cara" da Kinguila)
+
+O design deve transmitir **segurança institucional** misturada com a **identidade cultural africana** vibrante.
+
+### 1.1. Paleta de Cores (Baseada no Logotipo)
+
+A paleta deve ser usada para criar um "Dark Mode" moderno (inspirado na referência `image_1.png`), que é preferido para dashboards financeiros.
+
+  * **Primária (Fundo e Estrutura):**
+      * `Rich Black (#0A0A0A)` ou `Deep Charcoal (#121212)`: Para fundos principais.
+      * `Dark Grey (#1E1E1E)`: Para cartões e módulos (containers).
+  * **Acento Principal (Ação e Destaque):**
+      * `Kinguila Gold/Yellow (#FFD700 ou similar do logo)`: Para botões primários ("Comprar", "Vender"), ícones ativos e destaques de saldo. Transmite riqueza e atenção.
+  * **Acento Secundário (Urgência e Alerta):**
+      * `Kinguila Red (#DC143C ou similar do logo)`: Para alertas, cronómetros em contagem decrescente, botões de cancelamento e notificações de erro.
+  * **Tipografia e Neutros:**
+      * `Pure White (#FFFFFF)`: Títulos e valores principais.
+      * `Light Grey (#A0A0A0)`: Textos secundários e legendas.
+
+### 1.2. Integração do Padrão "Samakaka"
+
+O padrão africano (`image_0.png`) é complexo e deve ser usado com moderação para não poluir a interface.
+
+  * **Uso Correto:** Utilizar como uma marca d'água subtil (baixa opacidade, ex: 5-10%) no fundo de áreas de cabeçalho (headers) ou barras laterais.
+  * **Bordas:** Usar uma linha fina do padrão como borda superior em cartões de destaque.
+  * *Não usar* como fundo de áreas de leitura de texto ou formulários.
+
+### 1.3. Layout e Navegação (UX)
+
+O layout deve ser limpo, baseado em cartões, focado na facilidade de uso.
+
+  * **Dashboard (Home do User):** Visão geral clara do saldo total (convertido para a moeda preferida), atalhos rápidos para "Nova Troca" e histórico recente.
+  * **Marketplace P2P (A Lista):** Uma tabela ou lista de cartões limpa. Deve mostrar claramente: "Vendedor", "Rating (Estrelas)", "Taxa de Câmbio", "Disponível", e botão "Negociar".
+  * **A "Sala de Negociação" (Crítico):** Esta é a tela mais importante. Deve ser dividida em dois lados claros (Você vs. Vendedor) com um cronómetro central grande e instruções passo-a-passo inconfundíveis.
+
+-----
+
+## 🛠️ 2. Arquitetura e Planeamento Técnico
+
+Vamos solidificar a stack proposta para garantir robustez.
+
+  * **Backend Core:** .NET 6/7 (C\#) Web API. Excelente para lógica de negócios tipada, performance e segurança.
+  * **Microserviços (Auxiliares):** Python (FastAPI ou Flask) para scraping de taxas bancárias e futura integração de OCR/KYC.
+  * **Frontend:** React.js (com TypeScript para robustez) usando Tailwind CSS para estilização rápida baseada no design system acima.
+  * **Database:** PostgreSQL (Dados relacionais: users, transações) + Redis (Cache de taxas em tempo real e gestão de sessões).
+  * **Comunicação Real-time:** SignalR (nativo do .NET) é essencial para atualizar o status da negociação e o cronómetro sem o user precisar dar "refresh" na página.
+  * **Background Jobs:** Hangfire (biblioteca .NET) para gerir os cronómetros de 15 minutos e processar reembolsos automáticos.
+
+-----
+
+## 📅 3. Plano de Desenvolvimento Completo (Fases)
+
+### Fase 1: Fundação e Base de Dados (Semanas 1-3)
+
+1.  **Configuração do Ambiente:** Setup do repositório (monorepo ou repositórios separados para back/front), configuração de Docker compose para desenvolvimento local (API, DB, Redis).
+2.  **Modelagem de Dados (PostgreSQL Schama):**
+      * `Users`: ID, Email, PasswordHash, Phone, KYCStatus, RatingAverage, ReferralCode, ReferredBy.
+      * `UserBankAccounts`: Detalhes das contas onde o user recebe dinheiro (IBAN, Conta local, etc.).
+      * `Currencies`: Códigos (AOA, EUR, USD), Nome, TaxaReferenciaAtual.
+      * `SellOffers`: UserID (Vendedor), MoedaOrigem, MoedaDestino, TaxaOferecida, MontanteInicial, MontanteAtualDisponivel, Status (Ativo/Pausado/Esgotado).
+      * `Trades`: ID, BuyerID, SellerID, OfferID, AmountSold, AmountBought, AgreedRate, FeeAmount, Status (Created, BuyerPaid, SellerPaid, Completed, Cancelled, Refunded), Timestamps para cada etapa.
+      * `TradeLogs`: Auditoria de cada mudança de estado na `Trade`.
+3.  **Backend - Autenticação e Users:** Implementar Identity com JWT. Endpoints para registo, login, gestão de perfil e adição de contas bancárias.
+
+### Fase 2: O Motor de Negociação P2P (Semanas 4-7)
+
+Esta é a parte mais complexa e crítica do sistema.
+
+1.  **Backend - Gestão de Ofertas:** Endpoints para vendedores criarem e gerirem suas ofertas (definir stock, taxa). Lógica para calcular a "Lista de Espera" quando o stock acaba.
+2.  **Backend - Máquina de Estados da Transação:**
+      * Lógica para iniciar uma trade (bloquear o montante da oferta do vendedor).
+      * Endpoints para os users marcarem "Já transferi".
+3.  **O Cronómetro (The Timer Job):**
+      * Implementar Hangfire. Quando o User A clica em "Já transferi", um job é agendado para dali a 15 minutos.
+      * Se o User B não confirmar a receção antes do job correr, o sistema automaticamente marca a trade como "Falhada/Cancelada" e inicia o processo de reembolso.
+4.  **Microserviço de Taxas (Python):** Criar scraper que busca as taxas oficiais dos bancos centrais diariamente para calcular a taxa base da plataforma (a regra dos 70% vs taxa fixa).
+
+### Fase 3: Desenvolvimento Frontend (Web App) (Semanas 8-12)
+
+1.  **Setup e Componentes:** Configurar React + Tailwind. Criar componentes reutilizáveis com a identidade visual da Kinguila (Botões dourados, inputs escuros, cards com borda padrão Samakaka).
+2.  **Landing Page e Auth:** Implementar as páginas de marketing e fluxos de login/registo.
+3.  **Dashboard e Marketplace:** Criar a listagem de vendedores com filtros em tempo real.
+4.  **A Sala de Negociação (Negotiation Room):**
+      * Desenvolver a interface que guia o usuário passo-a-passo.
+      * Integração com **SignalR**: O frontend deve "escutar" eventos. Se o vendedor confirmar o pagamento, a tela do comprador atualiza instantaneamente para "Concluído", sem refresh. O cronómetro deve ser visível e sincronizado com o servidor.
+
+### Fase 4: Funcionalidades de Suporte e Segurança (Semanas 13-15)
+
+1.  **Sistema de Ratings:** Após a conclusão da trade, popup para avaliar a contraparte. Backend calcula a média.
+2.  **Sistema de Referidos:** Lógica backend para rastrear quem convidou quem e aplicar os descontos nas taxas das próximas 3 transações. Dashboard frontend para ver os convites.
+3.  **Admin Dashboard (Básico):** Uma interface interna para a equipa da Kinguila ver todas as transações em curso, intervir em disputas e visualizar logs de auditoria.
+4.  **Integração KYC (Básica):** Integração de um serviço de verificação de identidade (ex: Veriff ou Sumsub) para users que queiram transacionar valores altos.
+
+### Fase 5: Testes, Auditoria e Deploy (Semanas 16-18)
+
+1.  **Testes Unitários e de Integração:** Foco total na lógica de transação e no cronómetro. Simular falhas de pagamento e garantir que o reembolso automático é acionado.
+2.  **Security Audit (Pen-testing):** Tentar quebrar o sistema. Verificar injeção de SQL, XSS, e lógica de manipulação de valores nas APIs.
+3.  **Setup de Infraestrutura:** Configurar Kubernetes ou serviços de App Platform (Docker-based) na nuvem escolhida. Configurar CI/CD (GitHub Actions) para deploy automático.
+4.  **Lançamento Beta:** Lançar para um grupo fechado de users (ex: os vendedores recorrentes mencionados no "Modelo 2.0") para testes reais.
+
+-----
+
+## Exemplo de Estrutura de Diretórios (Monorepo)
+
+```
+kinguila-platform/
+├── .github/ (CI/CD workflows)
+├── docs/ (Documentação da API Swagger e Arquitetura)
+├── src/
+│   ├── Services/
+│   │   ├── Kinguila.API/ (Backend .NET Core Principal)
+│   │   │   ├── Controllers/
+│   │   │   ├── Domain/ (Lógica de negócios, Entidades)
+│   │   │   ├── Infrastructure/ (DB Context, Repositories, Hangfire)
+│   │   │   └── Hubs/ (SignalR para real-time)
+│   │   ├── Kinguila.RatesService/ (Python Microservice para taxas)
+│   ├── Clients/
+│   │   ├── kinguila-web-app/ (Frontend React)
+│   │   │   ├── src/
+│   │   │   │   ├── components/ (UI Kit da marca)
+│   │   │   │   ├── pages/ (Dashboard, NegotiationRoom, etc)
+│   │   │   │   ├── hooks/ (Gestão de estado e SignalR)
+│   │   ├── kinguila-admin/ (Frontend React para Backoffice)
+│   ├── Shared/ (Kernel partilhado, DTOs)
+├── docker-compose.yml (Para desenvolvimento local)
+└── README.md
+```

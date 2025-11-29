@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #0A0A0A;
+    color: #FFFFFF;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1E1E1E;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #FFD700;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #F5A623;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-kinguila-gold text-kinguila-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-kinguila-yellow hover:shadow-lg hover:shadow-kinguila-gold/20 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-kinguila-gold text-kinguila-gold font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-kinguila-gold hover:text-kinguila-black;
+  }
+
+  .btn-danger {
+    @apply bg-kinguila-red text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:bg-red-600 hover:shadow-lg hover:shadow-kinguila-red/20;
+  }
+
+  .card {
+    @apply bg-kinguila-card border border-kinguila-border rounded-2xl p-6 transition-all duration-300 hover:border-kinguila-gold/30;
+  }
+
+  .input-field {
+    @apply w-full bg-kinguila-dark border border-kinguila-border rounded-xl py-3 px-4 text-white placeholder-kinguila-gray focus:outline-none focus:border-kinguila-gold transition-colors;
+  }
+
+  .glass-effect {
+    @apply bg-kinguila-card/80 backdrop-blur-lg border border-kinguila-border/50;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-kinguila-gold to-kinguila-yellow bg-clip-text text-transparent;
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+
+  .samakaka-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFD700' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+}
